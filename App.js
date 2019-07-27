@@ -1,69 +1,19 @@
-import React, {Fragment} from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList
-} from 'react-native';
+import React, { Component } from 'react'
+import { createStackNavigator, createAppContainer } from 'react-navigation'
+import Home from './Home'
+import Detail from './Detail'
 
-export default class App extends React.Component {
-  state = {
-    items: [],
-    refreshing: false
-  }
+const AppNavigator = createStackNavigator({
+  Home,
+  Detail
+},{
+  initialRouteName: 'Home',
+})
 
-  page = 0;
+const AppContainer = createAppContainer(AppNavigator)
 
-  fetchRepositories(refreshing = false) {
-    const newPage = refreshing ? 1 : this.page + 1
-    // https://api.github.com/search/repositories?q=react
-    fetch(`https://api.github.com/search/repositories?q=react&page=${newPage}`)
-      .then(response => response.json())
-      .then(({ items }) => {
-        if (refreshing) {
-          this.setState({ items, refreshing: false })
-        } else {
-          this.page = newPage
-          this.setState({ items: [...this.state.items, ...items], refreshing: false })
-        }
-      })
-      .catch((error) => {
-        console.log(error)
-      })
-  }
-
+export default class App extends Component {
   render() {
-    return (
-      <SafeAreaView style={styles.wrapper}>
-        <View style={styles.container}>
-          <TouchableOpacity style={styles.container} onPress={() => this.fetchRepositories()}>
-            <Text>Fetch</Text>
-          </TouchableOpacity>
-          <FlatList
-            data={this.state.items}
-            renderItem={({ item }) => (<Text>{ item.name }</Text>)}
-            keyExtractor={(item) => item.id}
-            onEndReached={() => this.fetchRepositories()}
-            onEndReachedThreshold={0.1}
-            onRefresh={() => this.fetchRepositories(true)}
-            refreshing={this.state.refreshing}
-          />
-        </View>
-      </SafeAreaView>
-    );
+    return <AppContainer />
   }
-};
-
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-  },
-  container: {
-    backgroundColor: '#FFF',
-    flex: 1,
-    padding: 30
-  },
-});
+}
