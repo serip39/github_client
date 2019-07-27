@@ -11,19 +11,24 @@ import {
 
 export default class App extends React.Component {
   state = {
-    items: []
+    items: [],
+    refreshing: false
   }
 
   page = 0;
 
-  fetchRepositories() {
-    const newPage = this.page + 1;
+  fetchRepositories(refreshing = false) {
+    const newPage = refreshing ? 1 : this.page + 1
     // https://api.github.com/search/repositories?q=react
     fetch(`https://api.github.com/search/repositories?q=react&page=${newPage}`)
       .then(response => response.json())
       .then(({ items }) => {
-        this.page = newPage
-        this.setState({ items: [...this.state.items, ...items] })
+        if (refreshing) {
+          this.setState({ items, refreshing: false })
+        } else {
+          this.page = newPage
+          this.setState({ items: [...this.state.items, ...items], refreshing: false })
+        }
       })
       .catch((error) => {
         console.log(error)
@@ -43,6 +48,8 @@ export default class App extends React.Component {
             keyExtractor={(item) => item.id}
             onEndReached={() => this.fetchRepositories()}
             onEndReachedThreshold={0.1}
+            onRefresh={() => this.fetchRepositories(true)}
+            refreshing={this.state.refreshing}
           />
         </View>
       </SafeAreaView>
