@@ -5,7 +5,9 @@ import {
   View,
   Text,
   TouchableOpacity,
-  FlatList
+  FlatList,
+  TextInput,
+  Image
 } from 'react-native';
 
 export default class Home extends Component {
@@ -15,7 +17,8 @@ export default class Home extends Component {
 
   state = {
     items: [],
-    refreshing: false
+    refreshing: false,
+    text: ''
   }
 
   page = 0;
@@ -23,18 +26,18 @@ export default class Home extends Component {
   fetchRepositories(refreshing = false) {
     const newPage = refreshing ? 1 : this.page + 1
     // https://api.github.com/search/repositories?q=react
-    fetch(`https://api.github.com/search/repositories?q=react&page=${newPage}`)
+    fetch(`https://api.github.com/search/repositories?q=${this.state.text}&page=${newPage}`)
       .then(response => response.json())
       .then(({ items }) => {
+        this.page = newPage
         if (refreshing) {
           this.setState({ items, refreshing: false })
         } else {
-          this.page = newPage
           this.setState({ items: [...this.state.items, ...items], refreshing: false })
         }
       })
       .catch((error) => {
-        console.log(error)
+        console.log('Error Message : ' + error)
       })
   }
 
@@ -46,14 +49,21 @@ export default class Home extends Component {
     return (
       <SafeAreaView style={styles.wrapper}>
         <View style={styles.container}>
-          <TouchableOpacity style={styles.container} onPress={() => this.fetchRepositories()}>
-            <Text>Fetch</Text>
-          </TouchableOpacity>
+          <View style={styles.inputWrapper}>
+            <TextInput style={styles.input} onChangeText={(text) => this.setState({ text })} />
+            <TouchableOpacity onPress={() => this.fetchRepositories(true)}>
+              <Text style={styles.searchText}>Search</Text>
+            </TouchableOpacity>
+          </View>
           <FlatList
             data={this.state.items}
             renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => this.navigateToDetail(item)}>
-                <Text>{ item.name }</Text>
+              <TouchableOpacity style={ styles.item } onPress={() => this.navigateToDetail(item)}>
+                <Text style={ styles.itemTitle }>{ item.name }</Text>
+                <View style={ styles.owner }>
+                  <Image style={ styles.ownerIcon } source={{ url: item.owner.avatar_url }} />
+                  <Text style={ styles.ownerName }>{ item.owner.login }</Text>
+                </View>
               </TouchableOpacity>
             )}
             keyExtractor={(item) => item.id}
@@ -73,8 +83,42 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    backgroundColor: '#FFF',
-    flex: 1,
-    padding: 30
+    backgroundColor: '#F5FCFF',
+    flex: 1
   },
+  inputWrapper: {
+    padding: 20,
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    alignItems: 'center'
+  },
+  input: {
+    flex: 1,
+    padding: 10,
+    backgroundColor: '#EEE',
+    borderRadius: 4
+  },
+  searchText: {
+    padding: 10
+  },
+  item: {
+    padding: 10
+  },
+  itemTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10
+  },
+  owner: {
+    flexDirection: 'row'
+  },
+  ownerIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    marginRight: 5
+  },
+  ownerName: {
+    fontSize: 14
+  }
 });
