@@ -66,7 +66,7 @@ export default class Home extends Component {
                 </View>
               </TouchableOpacity>
             )}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id.toString()}
             onEndReached={() => this.fetchRepositories()}
             onEndReachedThreshold={0.1}
             onRefresh={() => this.fetchRepositories(true)}
